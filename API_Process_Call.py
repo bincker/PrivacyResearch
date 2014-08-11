@@ -6,7 +6,8 @@
 
 #	Creation Date : 08-08-2014
 
-#	Last Modified: Mon 11 Aug 2014 01:04:59 PM PDT
+#	Last Modified: Mon 11 Aug 2014 03:30:14 PM PDT
+
 
 #	Created By : Ameya Sanzgiri
 
@@ -17,7 +18,9 @@ import sys, time, os, subprocess, re, csv,ConfigParser,inspect
 
 #iFile_path = '/home/ameya/Documents/McAfee_Research/Scripts/API_call/' --This is for my santoku at home.
 iFile_path = '/home/ameya/Documents/Privacy_Research/Scripts/'
+
 #-------------------------------------------------------------------------------------------------------Constants
+
 CON_ManifestFile = 'AndroidManifest.xml'
 CON_APIFILE = '/home/ameya/Documents/Privacy_Research/Scripts/a.txt'
 sharefolder = ''
@@ -64,11 +67,13 @@ def FindAFile(path, name,flag):
 				return os.path.join(root,name)
 			else:
 				ERROR1 ("No Manifest File Found....Call Script from correct location")
-		else:
+		elif flag == 1:
 			if name in dirs:
 				return os.path.join(root,name)
 			else:
 				ERROR1("Directory" +str( name) + " not found")
+		else:
+			ERROR1("Wrong flag can only find file (0) or directory(1)")
 '''The following two modules do the string match
    AMS COmment: Python Search Match is AWESOME!!!!
 '''
@@ -83,7 +88,9 @@ def Process_Manifest_Package(ManifestFilePath):
 			print searchObj.group(1) #Gets the install location
 			print searchObj.group(2) #gets Package name
 	Man_File.close()	
+
 #---------------Process Manifest for Permission List
+
 def Process_Manifest_Permission(MFpath):
 	MAN_PERM_STR = ""
 	Man_file = open(MFpath, 'r+')
@@ -97,7 +104,7 @@ def Process_Manifest_Permission(MFpath):
 	Man_file.close()
 	print MAN_PERM_STR
 
-def CopyTransform(APICallFile):
+def Copy_API_Calls_and_Transform_to_SMALI(APICallFile):
 	#To get dir, change to working dir create copy and work on the copy
 	os.chdir(os.getcwd())  #change to dir of decompiled apk
 	subprocess.call(['cp',APICallFile, 'copy-a.txt']) #Create a dummy file to use as input
@@ -157,7 +164,6 @@ def ProcessAPICalls(CON_APIFILE, iFilePath):
 		ERROR1("directory not found")
 
 def ProcessConstants():
-	print str(__name__)
 	configreader = ConfigParser.RawConfigParser()
 	if Check_File('/home/ameya/Documents/Privacy_Research/Scripts/Config_API_call.txt'):
 		configreader.read('/home/ameya/Documents/Privacy_Research/Scripts/Config_API_call.txt')
@@ -180,13 +186,14 @@ def ProcessConstants():
 		#This is for the renaming and decompiling
 		unzip_output = configreader.get('UNZIP','CONST_OUTPUT_DIR')
 		apkfolder = configreader.get('DECOMPILE', 'CONST_APK')
-		print apkfolder
+		print apkfolder 
 		decompileAPK = configreader.get( 'DECOMPILE', 'CONST_DECOMPILE')
 		if not( Check_Path(apkfolder) and Check_Path(decompileAPK) ):
 			ERROR1("Issues with either APKFolder or DEcompile folder - Check if they exist")
 		#This is for the rest of stuff like the grep	
 		iFile_path = configreader.get( 'PROCESS', 'CON_FILEPATH')
 		CON_APIFILE = configreader.get('PROCESS', 'CON_APIFILE')
+		DEBUG1("ALL constants have been processed\n")
 		CON_ManifestFile = configreader.get('PROCESS', 'CON_MANFILE')
 		if(PerformUnzip(zip_input,unzip_output,passwd)):
 			DEBUG1("Unzip worked well")
@@ -201,14 +208,25 @@ def ProcessConstants():
 			DEBUG1("decompiled successfully")
 		else:
 			DEBUG1("Already decompiled\n")
-		if ( getAPIcall (decompileFolder) ):
-			DEBUG1( "API_calls have been made\n" )
+		if (ProcessAPICalls(CON_APIFILE , iFilePath) ):
+			DEBUG1( "The File has been copied and exists in " + str(os.getcwd()) )
 		else:
-			DEBUG1( " API Calls have been processed already\n")
+			DEBUG1("File has been processed\n")
+		curr_dir = os.getcwd()
+		decompiled_apk_folders = os.listdir(os.path.relpath (decompileAPK) )
+		for decAPK in decompiled_apk_folders:
+			print decAPK
+		
+		#Goto each folder of the decompiled files and do in the following sequence:
+			#1. Call ProcessAPICalls():Copy the transformed file to the folder
+			#2. Call ProcessMan():Processes Man and writes file to a folder
+			#3. Call CollectAPIStat(): Runs the Grep command on each folder and stores the result in a file in the foldera
+			#4. Call ConcatenateFile(): Concatenates a result of all the files into a single file
+			#5. Call AnalyzeFile(): Gets the Analysis of the file.
 	else:
 		ERROR1( "Config file not found The folder of the script also should have the file a.txt and the config file\n")
 
-def getAPICall( decompileFolder):
+#def getAPICall( decompileFolder):
 	# First open a file to write or we can just put results into it using the '>>' command
 	# For each decompiled folder grep exact API call run grep on the files
 	# 
