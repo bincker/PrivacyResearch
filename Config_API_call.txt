@@ -1,0 +1,19 @@
+[file]
+PYTHON = '/usr/bin/python'
+
+[UNZIP]
+CONST_SHARE: /mnt/SHARE
+CONST_ZIP_INPUT : /mnt/SHARE/Talking_Tom/Talking_Tom_zip/
+CONST_OUTPUT_DIR : /home/ameya/Documents/Privacy_Research/Talking_Tom/unzipped/
+CONST_PASSWD : infected
+
+[DECOMPILE]
+CONST_APK : /home/ameya/Documents/Privacy_Research/Talking_Tom/apk/
+CONST_DECOMPILE : /home/ameya/Documents/Privacy_Research/Talking_Tom/Decompiled/
+
+[PROCESS]
+CON_MANFILE : 'AndroidManifest.xml'
+CON_APIFILE : /home/ameya/Documents/Privacy_Research/Scripts/a.txt
+CON_FILEPATH : /home/ameya/Documents/Privacy_Research/Scripts/
+
+
